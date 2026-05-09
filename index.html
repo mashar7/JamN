@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart TV Clock - TV Optimized</title>
+    <title>Smart TV Clock - System Time</title>
     <style>
-        /* Menggunakan sistem font cadangan jika Google Fonts gagal dimuat */
         @import url('https://fonts.googleapis.com/css2?family=Antonio:wght@700&display=swap');
 
         :root {
             --bg-color: #000000;
             --hour-color: #ffffff;
-            --min-color: #94d0d6;
+            --min-color: #e0f7fa; /* Biru Keputihan Soft */
             --char-spacing: 0.12em; 
         }
 
@@ -21,7 +20,6 @@
             background-color: var(--bg-color);
             color: white;
             overflow: hidden;
-            /* Font Antonio dengan fallback sans-serif standar TV */
             font-family: 'Antonio', 'Impact', sans-serif;
             -webkit-user-select: none;
             user-select: none;
@@ -37,24 +35,23 @@
             position: absolute;
             display: flex;
             justify-content: center;
-            /* Transisi lebih aman untuk prosesor TV yang lebih lambat */
-            transition: all 2s ease-in-out;
+            transition: all 2.5s ease-in-out;
             width: 50vw;
-            will-change: top, left;
         }
 
         #group-hours { left: 0; }
         #group-minutes { right: 0; }
 
         .digit {
-            font-size: 38vw; /* Ukuran disesuaikan agar tidak overflow di beberapa aspek rasio TV */
+            font-size: 38vw;
             line-height: 0.9;
             letter-spacing: var(--char-spacing);
             font-weight: 700;
+            text-shadow: 0 0 15px rgba(255,255,255,0.1);
         }
 
         #hours { color: var(--hour-color); }
-        #minutes { color: var(--min-color); }
+        #minutes { color: var(--min-color); transition: color 0.8s ease; }
 
         #date-info {
             position: absolute;
@@ -63,12 +60,12 @@
             letter-spacing: 6px;
             text-transform: uppercase;
             font-weight: bold;
-            background: rgba(255, 255, 255, 0.12);
-            padding: 8px 25px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 25px;
             border-radius: 12px;
             z-index: 100;
             white-space: nowrap;
-            transition: all 2s ease-in-out;
+            transition: all 2.5s ease-in-out;
             border: 1px solid rgba(255,255,255,0.1);
         }
 
@@ -82,10 +79,9 @@
             z-index: 9999;
             transition: opacity 0.5s ease;
             opacity: 0;
-            pointer-events: none;
         }
         
-        .show-menu #menu { opacity: 1; pointer-events: auto; }
+        .show-menu #menu { opacity: 1; }
 
         button {
             background: #222; color: white; border: 1px solid #444;
@@ -94,7 +90,7 @@
         }
     </style>
 </head>
-<body onmousemove="handleInteraction()" onclick="handleInteraction()" ontouchstart="handleInteraction()">
+<body onmousemove="handleInteraction()" onclick="handleInteraction()">
 
     <div id="main-stage">
         <div id="date-info">MEMUAT...</div>
@@ -109,73 +105,82 @@
     </div>
 
     <div id="menu">
-        <button style="background:#4a6fa5" onclick="toggleFullScreen()">⛶ FULL SCREEN</button>
-        <button onclick="changeTheme('#ffffff', '#94d0d6')">Cyan</button>
-        <button onclick="changeTheme('#ffffff', '#cfd694')">Gold</button>
-        <button onclick="changeTheme('#ffffff', '#d694a8')">Red</button>
+        <button style="background:#0084ff" onclick="toggleFullScreen()">⛶ FULL SCREEN</button>
+        <button onclick="changeTheme('#ffffff', '#e0f7fa')">Soft Blue</button>
+        <button onclick="changeTheme('#ffffff', '#fff9c4')">Soft Yellow</button>
+        <button onclick="changeTheme('#ffffff', '#ffebee')">Soft Red</button>
     </div>
 
     <script>
-        // Membungkus kode dalam pengecekan DOM agar tidak gagal di TV lama
-        document.addEventListener("DOMContentLoaded", function() {
+        // Memastikan elemen sudah ada sebelum script berjalan
+        window.onload = function() {
             updateClock();
             antiBurn();
-            
-            // Interval update jam setiap detik
             setInterval(updateClock, 1000);
-            // Interval anti-burn setiap 20 detik (lebih aman untuk panel)
-            setInterval(antiBurn, 20000);
-        });
-
-        let menuTimeout;
-
-        function handleInteraction() {
-            showMenu();
-            // Beberapa TV butuh interaksi untuk memulai fullscreen
-            autoFullScreen();
-        }
-
-        function showMenu() {
-            document.body.classList.add('show-menu');
-            clearTimeout(menuTimeout);
-            menuTimeout = setTimeout(() => {
-                document.body.classList.remove('show-menu');
-            }, 4000); // 4 detik agar lebih lama sedikit di TV
-        }
+            setInterval(antiBurn, 30000);
+        };
 
         function updateClock() {
-            const now = new Date();
-            const h = now.getHours().toString().padStart(2, '0');
-            const m = now.getMinutes().toString().padStart(2, '0');
-            
-            const hoursEl = document.getElementById('hours');
-            const minsEl = document.getElementById('minutes');
-            const dateEl = document.getElementById('date-info');
+            try {
+                var sekarang = new Date();
+                
+                // Ambil data jam dan menit dari sistem TV
+                var h = sekarang.getHours();
+                var m = sekarang.getMinutes();
 
-            if(hoursEl) hoursEl.textContent = h;
-            if(minsEl) minsEl.textContent = m;
+                var hString = (h < 10 ? "0" + h : h);
+                var mString = (m < 10 ? "0" + m : m);
+                
+                var hoursEl = document.getElementById('hours');
+                var minutesEl = document.getElementById('minutes');
+                var dateEl = document.getElementById('date-info');
+
+                if (hoursEl) hoursEl.innerHTML = hString;
+                if (minutesEl) minutesEl.innerHTML = mString;
+
+                var hari = ["MINGGU", "SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"];
+                var bulan = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
+                
+                var tglString = hari[sekarang.getDay()] + ", " + sekarang.getDate() + " " + bulan[sekarang.getMonth()] + " " + sekarang.getFullYear();
+                if (dateEl) dateEl.innerHTML = tglString;
+            } catch(e) {
+                console.log("Error updating clock: ", e);
+            }
+        }
+
+        var menuTimeout;
+        function handleInteraction() {
+            document.body.classList.add('show-menu');
+            clearTimeout(menuTimeout);
+            menuTimeout = setTimeout(function() {
+                document.body.classList.remove('show-menu');
+            }, 4000);
             
-            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-            if(dateEl) dateEl.textContent = now.toLocaleDateString('id-ID', options);
+            // Coba fullscreen (dipicu interaksi pengguna)
+            var el = document.documentElement;
+            var rfs = el.requestFullscreen || el.webkitRequestFullScreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+            if(rfs && !document.fullscreenElement) {
+                rfs.call(el).catch(function(e){});
+            }
         }
 
         function antiBurn() {
-            const groupH = document.getElementById('group-hours');
-            const groupM = document.getElementById('group-minutes');
-            const dateBox = document.getElementById('date-info');
+            var groupH = document.getElementById('group-hours');
+            var groupM = document.getElementById('group-minutes');
+            var dateBox = document.getElementById('date-info');
             
-            if(!groupH || !groupM || !dateBox) return;
+            if(!groupH || !groupM) return;
 
-            const hourIsHigh = Math.random() > 0.5;
+            var hourIsHigh = Math.random() > 0.5;
 
             if (hourIsHigh) {
-                groupH.style.top = "5vh"; 
-                groupM.style.top = "20vh"; 
+                groupH.style.top = "8vh"; 
+                groupM.style.top = "22vh"; 
                 dateBox.style.left = "25%";
                 dateBox.style.transform = "translateX(-50%)";
             } else {
-                groupM.style.top = "5vh";
-                groupH.style.top = "20vh";
+                groupM.style.top = "8vh";
+                groupH.style.top = "22vh";
                 dateBox.style.left = "75%";
                 dateBox.style.transform = "translateX(-50%)";
             }
@@ -183,15 +188,11 @@
 
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(e => {});
+                var el = document.documentElement;
+                var rfs = el.requestFullscreen || el.webkitRequestFullScreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+                if(rfs) rfs.call(el);
             } else {
                 if (document.exitFullscreen) document.exitFullscreen();
-            }
-        }
-
-        function autoFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(e => {});
             }
         }
 
