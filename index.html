@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart TV Clock Ultra - Full Visibility</title>
+    <title>Smart TV Clock - Refined Dynamic</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Antonio:wght@700&family=Orbitron:wght@700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Antonio:wght@700&display=swap');
 
         :root {
             --bg-color: #000000;
             --hour-color: #ffffff;
-            --min-color: #00e5ff;
-            --accent-color: #ff4747;
-            --char-spacing: 0.15em; 
+            --min-color: #94d0d6;
+            --char-spacing: 0.12em; 
         }
 
         body, html {
@@ -22,209 +21,148 @@
             color: white;
             overflow: hidden;
             font-family: 'Antonio', sans-serif;
-            transition: background-color 0.5s;
-            cursor: pointer; /* Menandakan layar bisa diklik */
         }
 
-        #burn-container {
-            position: absolute;
-            width: 100%; height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: all 1.5s ease-in-out;
-        }
-
-        /* --- MODE ARTISTIK (JANGKUNG & RENGGANG) --- */
-        .clock-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 120px; 
-        }
-
-        #hours {
-            font-size: 35vw;
-            color: var(--hour-color);
-            line-height: 0.8;
-            align-self: flex-start;
-            letter-spacing: var(--char-spacing);
-            text-shadow: 0 0 20px rgba(255,255,255,0.2);
-        }
-
-        #minutes {
-            font-size: 35vw;
-            color: var(--min-color);
-            line-height: 0.8;
-            align-self: flex-end;
-            margin-top: 15vh;
-            letter-spacing: var(--char-spacing);
-            text-shadow: 0 0 20px rgba(0,229,255,0.2);
-        }
-
-        /* --- MODE ANALOG --- */
-        #analog-clock {
-            display: none;
-            width: 55vh;
-            height: 55vh;
-            border: 15px solid white;
-            border-radius: 50%;
+        #main-stage {
             position: relative;
-            margin-bottom: 30px;
+            width: 100vw;
+            height: 100vh;
         }
 
-        .hand {
+        .element-group {
             position: absolute;
-            bottom: 50%;
-            left: 50%;
-            transform-origin: bottom;
-            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            transition: all 2.5s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 50vw;
         }
 
-        .hour-hand { width: 15px; height: 25%; background: var(--hour-color); }
-        .min-hand { width: 10px; height: 40%; background: var(--min-color); }
-        .sec-hand { width: 4px; height: 45%; background: var(--accent-color); }
+        #group-hours { left: 0; }
+        #group-minutes { right: 0; }
 
-        /* --- MODE DIGITAL --- */
-        .digital-mode .clock-wrapper { gap: 40px; }
-        .digital-mode #hours, .digital-mode #minutes {
-            align-self: center;
-            margin: 0;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 22vw;
-            letter-spacing: 0.1em;
+        .digit {
+            font-size: 42vw; /* Sedikit dikecilkan agar proporsional */
+            line-height: 0.9;
+            letter-spacing: var(--char-spacing);
+            font-weight: 700;
         }
-        .digital-mode #minutes::before { content: ":"; color: var(--hour-color); margin-right: 30px; }
 
-        .analog-active #analog-clock { display: block; }
-        .analog-active .clock-wrapper { display: none; }
+        #hours { color: var(--hour-color); }
+        #minutes { color: var(--min-color); }
 
+        /* Desain Tanggal Dinamis */
         #date-info {
+            position: absolute;
+            bottom: 8vh; /* Tetap di area bawah layar */
             font-size: 3.5vw;
-            margin-top: 40px;
-            letter-spacing: 8px;
+            letter-spacing: 6px;
             text-transform: uppercase;
             font-weight: bold;
-            background: rgba(255,255,255,0.1);
-            padding: 5px 20px;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 8px 25px;
+            border-radius: 12px;
+            z-index: 100;
+            white-space: nowrap;
+            transition: all 2.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        /* Menu */
+        /* Menu Auto-Hide */
         #menu {
             position: fixed;
-            bottom: 20px; left: 50%;
+            bottom: 25px; left: 50%;
             transform: translateX(-50%);
             display: flex; gap: 10px;
             background: rgba(255,255,255,0.2);
-            padding: 15px; border-radius: 50px;
-            opacity: 0; transition: opacity 0.3s;
-            z-index: 1000;
+            padding: 10px; border-radius: 50px;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+            opacity: 0;
         }
-        body:hover #menu { opacity: 1; }
+        
+        .show-menu #menu { opacity: 1; }
+
         button {
             background: #222; color: white; border: 1px solid #444;
-            padding: 12px 20px; border-radius: 20px; cursor: pointer;
-            font-weight: bold; font-size: 14px;
+            padding: 8px 18px; border-radius: 20px; cursor: pointer;
+            font-weight: bold; font-size: 1.1vw;
         }
-        button:hover { background: #444; }
-        .btn-fs { background: #0084ff; border-color: #00c3ff; }
     </style>
 </head>
-<body onclick="autoFullScreen()">
+<body onmousemove="showMenu()" onclick="autoFullScreen()">
 
-    <div id="burn-container">
-        <div id="analog-clock">
-            <div class="hand hour-hand" id="hour-h"></div>
-            <div class="hand min-hand" id="min-h"></div>
-            <div class="hand sec-hand" id="sec-h"></div>
-            <div style="position: absolute; top:50%; left:50%; width:20px; height:20px; background:white; border-radius:50%; transform:translate(-50%, -50%);"></div>
-        </div>
-
-        <div class="clock-wrapper" id="clockBox">
-            <div id="hours">00</div>
-            <div id="minutes">00</div>
-        </div>
-        
+    <div id="main-stage">
         <div id="date-info">MEMUAT...</div>
+
+        <div id="group-hours" class="element-group">
+            <div id="hours" class="digit">00</div>
+        </div>
+
+        <div id="group-minutes" class="element-group">
+            <div id="minutes" class="digit">00</div>
+        </div>
     </div>
 
     <div id="menu">
-        <button class="btn-fs" onclick="toggleFullScreen()">⛶ FULL SCREEN</button>
-        <button onclick="setMode('artistic')">Artistik</button>
-        <button onclick="setMode('digital')">Digital</button>
-        <button onclick="setMode('analog')">Analog</button>
-        <button onclick="changeTheme('#ffffff', '#00e5ff')">Cyan</button>
-        <button onclick="changeTheme('#ffffff', '#ffcf00')">Gold</button>
+        <button style="background:#92abc2" onclick="toggleFullScreen()">⛶ FULL SCREEN</button>
+        <button onclick="changeTheme('#ffffff', '#94d0d6')">Cyan</button>
+        <button onclick="changeTheme('#ffffff', '#cfd694')">Gold</button>
+        <button onclick="changeTheme('#ffffff', '#d694a8')">Red</button>
     </div>
 
     <script>
+        let menuTimeout;
+
+        function showMenu() {
+            document.body.classList.add('show-menu');
+            clearTimeout(menuTimeout);
+            menuTimeout = setTimeout(() => {
+                document.body.classList.remove('show-menu');
+            }, 3000);
+        }
+
         function updateClock() {
             const now = new Date();
-            let h = now.getHours();
-            let m = now.getMinutes();
-            let s = now.getSeconds();
-            
-            document.getElementById('hours').textContent = h.toString().padStart(2, '0');
-            document.getElementById('minutes').textContent = m.toString().padStart(2, '0');
+            document.getElementById('hours').textContent = now.getHours().toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = now.getMinutes().toString().padStart(2, '0');
             
             const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
             document.getElementById('date-info').textContent = now.toLocaleDateString('id-ID', options);
-
-            const hDeg = (h * 30) + (m * 0.5);
-            const mDeg = (m * 6);
-            const sDeg = (s * 6);
-            if(document.getElementById('analog-clock').style.display !== 'none'){
-                document.getElementById('hour-h').style.transform = `translateX(-50%) rotate(${hDeg}deg)`;
-                document.getElementById('min-h').style.transform = `translateX(-50%) rotate(${mDeg}deg)`;
-                document.getElementById('sec-h').style.transform = `translateX(-50%) rotate(${sDeg}deg)`;
-            }
-        }
-
-        function setMode(mode) {
-            document.body.classList.remove('digital-mode', 'analog-active');
-            const analog = document.getElementById('analog-clock');
-            const wrapper = document.getElementById('clockBox');
-            
-            if(mode === 'digital') {
-                document.body.classList.add('digital-mode');
-                analog.style.display = 'none';
-                wrapper.style.display = 'flex';
-            } else if(mode === 'analog') {
-                document.body.classList.add('analog-active');
-                analog.style.display = 'block';
-                wrapper.style.display = 'none';
-            } else {
-                analog.style.display = 'none';
-                wrapper.style.display = 'flex';
-            }
-        }
-
-        // Fungsi Auto Full Screen
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log(`Error attempting to enable full-screen mode: ${err.message}`);
-                });
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
-        }
-
-        // Memicu fullscreen saat pertama kali klik layar
-        function autoFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            }
         }
 
         function antiBurn() {
-            const container = document.getElementById('burn-container');
-            const x = (Math.random() * 6 - 3).toFixed(2);
-            const y = (Math.random() * 6 - 3).toFixed(2);
-            container.style.transform = `translate(${x}%, ${y}%)`;
+            const groupH = document.getElementById('group-hours');
+            const groupM = document.getElementById('group-minutes');
+            const dateBox = document.getElementById('date-info');
+            
+            const hourIsHigh = Math.random() > 0.5;
+
+            if (hourIsHigh) {
+                // Jam agak di atas, Menit agak di bawah
+                groupH.style.top = "8vh"; 
+                groupM.style.top = "22vh"; 
+                
+                // Tanggal di Kiri Bawah (sejajar kolom Jam)
+                dateBox.style.left = "25%";
+                dateBox.style.transform = "translateX(-50%)";
+            } else {
+                // Menit agak di atas, Jam agak di bawah
+                groupM.style.top = "8vh";
+                groupH.style.top = "22vh";
+                
+                // Tanggal di Kanan Bawah (sejajar kolom Menit)
+                dateBox.style.left = "75%";
+                dateBox.style.transform = "translateX(-50%)";
+            }
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        }
+
+        function autoFullScreen() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
         }
 
         function changeTheme(hColor, mColor) {
@@ -233,7 +171,8 @@
         }
 
         setInterval(updateClock, 1000);
-        setInterval(antiBurn, 30000);
+        setInterval(antiBurn, 20000);
+        
         updateClock();
         antiBurn();
     </script>
