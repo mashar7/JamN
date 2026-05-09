@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart TV Clock - System Time</title>
+    <title>Smart TV Clock - Final Fix</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Antonio:wght@700&display=swap');
 
         :root {
             --bg-color: #000000;
             --hour-color: #ffffff;
-            --min-color: #e0f7fa; /* Biru Keputihan Soft */
+            --min-color: #e0f7fa;
             --char-spacing: 0.12em; 
         }
 
@@ -25,11 +25,7 @@
             user-select: none;
         }
 
-        #main-stage {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-        }
+        #main-stage { position: relative; width: 100vw; height: 100vh; }
 
         .element-group {
             position: absolute;
@@ -93,14 +89,14 @@
 <body onmousemove="handleInteraction()" onclick="handleInteraction()">
 
     <div id="main-stage">
-        <div id="date-info">MEMUAT...</div>
+        <div id="date-info">KETUK LAYAR UNTUK MEMULAI</div>
 
         <div id="group-hours" class="element-group" style="top: 15vh;">
-            <div id="hours" class="digit">00</div>
+            <div id="hours" class="digit">--</div>
         </div>
 
         <div id="group-minutes" class="element-group" style="top: 15vh;">
-            <div id="minutes" class="digit">00</div>
+            <div id="minutes" class="digit">--</div>
         </div>
     </div>
 
@@ -112,51 +108,41 @@
     </div>
 
     <script>
-        // Memastikan elemen sudah ada sebelum script berjalan
-        window.onload = function() {
-            updateClock();
-            antiBurn();
-            setInterval(updateClock, 1000);
-            setInterval(antiBurn, 30000);
-        };
-
+        // Fungsi utama untuk mengambil jam dari TV
         function updateClock() {
-            try {
-                var sekarang = new Date();
-                
-                // Ambil data jam dan menit dari sistem TV
-                var h = sekarang.getHours();
-                var m = sekarang.getMinutes();
+            var sekarang = new Date();
+            var h = sekarang.getHours();
+            var m = sekarang.getMinutes();
 
-                var hString = (h < 10 ? "0" + h : h);
-                var mString = (m < 10 ? "0" + m : m);
-                
-                var hoursEl = document.getElementById('hours');
-                var minutesEl = document.getElementById('minutes');
-                var dateEl = document.getElementById('date-info');
+            // Format angka agar selalu 2 digit
+            var hString = (h < 10 ? "0" + h : "" + h);
+            var mString = (m < 10 ? "0" + m : "" + m);
+            
+            // Gunakan innerHTML karena lebih kompatibel di TV lama daripada textContent
+            document.getElementById('hours').innerHTML = hString;
+            document.getElementById('minutes').innerHTML = mString;
 
-                if (hoursEl) hoursEl.innerHTML = hString;
-                if (minutesEl) minutesEl.innerHTML = mString;
-
-                var hari = ["MINGGU", "SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"];
-                var bulan = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
-                
-                var tglString = hari[sekarang.getDay()] + ", " + sekarang.getDate() + " " + bulan[sekarang.getMonth()] + " " + sekarang.getFullYear();
-                if (dateEl) dateEl.innerHTML = tglString;
-            } catch(e) {
-                console.log("Error updating clock: ", e);
-            }
+            // Update Tanggal Manual
+            var hari = ["MINGGU", "SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"];
+            var bulan = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
+            
+            var tglString = hari[sekarang.getDay()] + ", " + sekarang.getDate() + " " + bulan[sekarang.getMonth()] + " " + sekarang.getFullYear();
+            document.getElementById('date-info').innerHTML = tglString;
         }
 
         var menuTimeout;
         function handleInteraction() {
+            // Jalankan update jam segera setelah layar diklik
+            updateClock();
+            antiBurn();
+
             document.body.classList.add('show-menu');
             clearTimeout(menuTimeout);
             menuTimeout = setTimeout(function() {
                 document.body.classList.remove('show-menu');
             }, 4000);
             
-            // Coba fullscreen (dipicu interaksi pengguna)
+            // Minta fullscreen (dibutuhkan interaksi manual pada banyak TV)
             var el = document.documentElement;
             var rfs = el.requestFullscreen || el.webkitRequestFullScreen || el.mozRequestFullScreen || el.msRequestFullscreen;
             if(rfs && !document.fullscreenElement) {
@@ -169,8 +155,6 @@
             var groupM = document.getElementById('group-minutes');
             var dateBox = document.getElementById('date-info');
             
-            if(!groupH || !groupM) return;
-
             var hourIsHigh = Math.random() > 0.5;
 
             if (hourIsHigh) {
@@ -200,6 +184,15 @@
             document.documentElement.style.setProperty('--hour-color', hColor);
             document.documentElement.style.setProperty('--min-color', mColor);
         }
+
+        // Jalankan interval pembaruan
+        setInterval(updateClock, 1000);
+        setInterval(antiBurn, 30000);
+
+        // Langsung panggil sekali saat dimuat
+        window.onload = function() {
+            updateClock();
+        };
     </script>
 </body>
 </html>
