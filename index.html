@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart TV Clock - Final Fix</title>
+    <title>Smart TV Clock - Outline Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Antonio:wght@700&display=swap');
 
         :root {
             --bg-color: #000000;
             --hour-color: #ffffff;
-            --min-color: #e0f7fa;
+            --min-color: #e0f7fa; 
             --char-spacing: 0.12em; 
         }
 
@@ -25,13 +25,17 @@
             user-select: none;
         }
 
-        #main-stage { position: relative; width: 100vw; height: 100vh; }
+        #main-stage {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
 
         .element-group {
             position: absolute;
             display: flex;
             justify-content: center;
-            transition: all 2.5s ease-in-out;
+            transition: all 2.5s cubic-bezier(0.4, 0, 0.2, 1);
             width: 50vw;
         }
 
@@ -43,11 +47,23 @@
             line-height: 0.9;
             letter-spacing: var(--char-spacing);
             font-weight: 700;
-            text-shadow: 0 0 15px rgba(255,255,255,0.1);
+            
+            /* EFEK OUTLINE */
+            color: transparent; /* Membuat isi huruf kosong */
+            -webkit-text-stroke-width: 2px; /* Ketebalan garis tepi */
         }
 
-        #hours { color: var(--hour-color); }
-        #minutes { color: var(--min-color); transition: color 0.8s ease; }
+        #hours { 
+            -webkit-text-stroke-color: var(--hour-color); 
+            /* Memberikan sedikit cahaya agar garis terlihat jelas dari jauh */
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+        }
+        
+        #minutes { 
+            -webkit-text-stroke-color: var(--min-color); 
+            filter: drop-shadow(0 0 10px rgba(0,224,250,0.3));
+            transition: -webkit-text-stroke-color 0.8s ease; 
+        }
 
         #date-info {
             position: absolute;
@@ -56,12 +72,12 @@
             letter-spacing: 6px;
             text-transform: uppercase;
             font-weight: bold;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px 25px;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 8px 25px;
             border-radius: 12px;
             z-index: 100;
             white-space: nowrap;
-            transition: all 2.5s ease-in-out;
+            transition: all 2.5s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid rgba(255,255,255,0.1);
         }
 
@@ -81,22 +97,22 @@
 
         button {
             background: #222; color: white; border: 1px solid #444;
-            padding: 10px 20px; border-radius: 20px; cursor: pointer;
-            font-weight: bold; font-size: 1.2vw;
+            padding: 8px 18px; border-radius: 20px; cursor: pointer;
+            font-weight: bold; font-size: 1.1vw;
         }
     </style>
 </head>
-<body onmousemove="handleInteraction()" onclick="handleInteraction()">
+<body onmousemove="showMenu()" onclick="handleInteraction()">
 
     <div id="main-stage">
-        <div id="date-info">KETUK LAYAR UNTUK MEMULAI</div>
+        <div id="date-info">MEMUAT...</div>
 
         <div id="group-hours" class="element-group" style="top: 15vh;">
-            <div id="hours" class="digit">--</div>
+            <div id="hours" class="digit">00</div>
         </div>
 
         <div id="group-minutes" class="element-group" style="top: 15vh;">
-            <div id="minutes" class="digit">--</div>
+            <div id="minutes" class="digit">00</div>
         </div>
     </div>
 
@@ -108,41 +124,43 @@
     </div>
 
     <script>
-        // Fungsi utama untuk mengambil jam dari TV
+        var menuTimeout;
+
+        function showMenu() {
+            document.body.classList.add('show-menu');
+            clearTimeout(menuTimeout);
+            menuTimeout = setTimeout(function() {
+                document.body.classList.remove('show-menu');
+            }, 3000);
+        }
+
         function updateClock() {
             var sekarang = new Date();
             var h = sekarang.getHours();
             var m = sekarang.getMinutes();
 
-            // Format angka agar selalu 2 digit
-            var hString = (h < 10 ? "0" + h : "" + h);
-            var mString = (m < 10 ? "0" + m : "" + m);
+            var hString = (h < 10 ? "0" + h : h);
+            var mString = (m < 10 ? "0" + m : m);
             
-            // Gunakan innerHTML karena lebih kompatibel di TV lama daripada textContent
-            document.getElementById('hours').innerHTML = hString;
-            document.getElementById('minutes').innerHTML = mString;
+            var hoursEl = document.getElementById('hours');
+            var minutesEl = document.getElementById('minutes');
+            var dateEl = document.getElementById('date-info');
 
-            // Update Tanggal Manual
+            if (hoursEl) hoursEl.innerHTML = hString;
+            if (minutesEl) minutesEl.innerHTML = mString;
+
             var hari = ["MINGGU", "SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"];
             var bulan = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
             
             var tglString = hari[sekarang.getDay()] + ", " + sekarang.getDate() + " " + bulan[sekarang.getMonth()] + " " + sekarang.getFullYear();
-            document.getElementById('date-info').innerHTML = tglString;
+            if (dateEl) dateEl.innerHTML = tglString;
         }
 
-        var menuTimeout;
         function handleInteraction() {
-            // Jalankan update jam segera setelah layar diklik
             updateClock();
             antiBurn();
-
-            document.body.classList.add('show-menu');
-            clearTimeout(menuTimeout);
-            menuTimeout = setTimeout(function() {
-                document.body.classList.remove('show-menu');
-            }, 4000);
+            showMenu();
             
-            // Minta fullscreen (dibutuhkan interaksi manual pada banyak TV)
             var el = document.documentElement;
             var rfs = el.requestFullscreen || el.webkitRequestFullScreen || el.mozRequestFullScreen || el.msRequestFullscreen;
             if(rfs && !document.fullscreenElement) {
@@ -155,6 +173,8 @@
             var groupM = document.getElementById('group-minutes');
             var dateBox = document.getElementById('date-info');
             
+            if(!groupH || !groupM) return;
+
             var hourIsHigh = Math.random() > 0.5;
 
             if (hourIsHigh) {
@@ -172,9 +192,7 @@
 
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
-                var el = document.documentElement;
-                var rfs = el.requestFullscreen || el.webkitRequestFullScreen || el.mozRequestFullScreen || el.msRequestFullscreen;
-                if(rfs) rfs.call(el);
+                document.documentElement.requestFullscreen();
             } else {
                 if (document.exitFullscreen) document.exitFullscreen();
             }
@@ -185,13 +203,11 @@
             document.documentElement.style.setProperty('--min-color', mColor);
         }
 
-        // Jalankan interval pembaruan
-        setInterval(updateClock, 1000);
-        setInterval(antiBurn, 30000);
-
-        // Langsung panggil sekali saat dimuat
         window.onload = function() {
             updateClock();
+            antiBurn();
+            setInterval(updateClock, 1000);
+            setInterval(antiBurn, 30000);
         };
     </script>
 </body>
