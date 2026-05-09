@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart TV Clock - Refined Dynamic</title>
+    <title>Smart TV Clock - TV Optimized</title>
     <style>
+        /* Menggunakan sistem font cadangan jika Google Fonts gagal dimuat */
         @import url('https://fonts.googleapis.com/css2?family=Antonio:wght@700&display=swap');
 
         :root {
@@ -20,7 +21,10 @@
             background-color: var(--bg-color);
             color: white;
             overflow: hidden;
-            font-family: 'Antonio', sans-serif;
+            /* Font Antonio dengan fallback sans-serif standar TV */
+            font-family: 'Antonio', 'Impact', sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         #main-stage {
@@ -33,15 +37,17 @@
             position: absolute;
             display: flex;
             justify-content: center;
-            transition: all 2.5s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Transisi lebih aman untuk prosesor TV yang lebih lambat */
+            transition: all 2s ease-in-out;
             width: 50vw;
+            will-change: top, left;
         }
 
         #group-hours { left: 0; }
         #group-minutes { right: 0; }
 
         .digit {
-            font-size: 42vw; /* Sedikit dikecilkan agar proporsional */
+            font-size: 38vw; /* Ukuran disesuaikan agar tidak overflow di beberapa aspek rasio TV */
             line-height: 0.9;
             letter-spacing: var(--char-spacing);
             font-weight: 700;
@@ -50,11 +56,10 @@
         #hours { color: var(--hour-color); }
         #minutes { color: var(--min-color); }
 
-        /* Desain Tanggal Dinamis */
         #date-info {
             position: absolute;
-            bottom: 8vh; /* Tetap di area bawah layar */
-            font-size: 3.5vw;
+            bottom: 8vh;
+            font-size: 2.8vw;
             letter-spacing: 6px;
             text-transform: uppercase;
             font-weight: bold;
@@ -63,11 +68,10 @@
             border-radius: 12px;
             z-index: 100;
             white-space: nowrap;
-            transition: all 2.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 2s ease-in-out;
             border: 1px solid rgba(255,255,255,0.1);
         }
 
-        /* Menu Auto-Hide */
         #menu {
             position: fixed;
             bottom: 25px; left: 50%;
@@ -78,56 +82,81 @@
             z-index: 9999;
             transition: opacity 0.5s ease;
             opacity: 0;
+            pointer-events: none;
         }
         
-        .show-menu #menu { opacity: 1; }
+        .show-menu #menu { opacity: 1; pointer-events: auto; }
 
         button {
             background: #222; color: white; border: 1px solid #444;
-            padding: 8px 18px; border-radius: 20px; cursor: pointer;
-            font-weight: bold; font-size: 1.1vw;
+            padding: 10px 20px; border-radius: 20px; cursor: pointer;
+            font-weight: bold; font-size: 1.2vw;
         }
     </style>
 </head>
-<body onmousemove="showMenu()" onclick="autoFullScreen()">
+<body onmousemove="handleInteraction()" onclick="handleInteraction()" ontouchstart="handleInteraction()">
 
     <div id="main-stage">
         <div id="date-info">MEMUAT...</div>
 
-        <div id="group-hours" class="element-group">
+        <div id="group-hours" class="element-group" style="top: 15vh;">
             <div id="hours" class="digit">00</div>
         </div>
 
-        <div id="group-minutes" class="element-group">
+        <div id="group-minutes" class="element-group" style="top: 15vh;">
             <div id="minutes" class="digit">00</div>
         </div>
     </div>
 
     <div id="menu">
-        <button style="background:#92abc2" onclick="toggleFullScreen()">⛶ FULL SCREEN</button>
+        <button style="background:#4a6fa5" onclick="toggleFullScreen()">⛶ FULL SCREEN</button>
         <button onclick="changeTheme('#ffffff', '#94d0d6')">Cyan</button>
         <button onclick="changeTheme('#ffffff', '#cfd694')">Gold</button>
         <button onclick="changeTheme('#ffffff', '#d694a8')">Red</button>
     </div>
 
     <script>
+        // Membungkus kode dalam pengecekan DOM agar tidak gagal di TV lama
+        document.addEventListener("DOMContentLoaded", function() {
+            updateClock();
+            antiBurn();
+            
+            // Interval update jam setiap detik
+            setInterval(updateClock, 1000);
+            // Interval anti-burn setiap 20 detik (lebih aman untuk panel)
+            setInterval(antiBurn, 20000);
+        });
+
         let menuTimeout;
+
+        function handleInteraction() {
+            showMenu();
+            // Beberapa TV butuh interaksi untuk memulai fullscreen
+            autoFullScreen();
+        }
 
         function showMenu() {
             document.body.classList.add('show-menu');
             clearTimeout(menuTimeout);
             menuTimeout = setTimeout(() => {
                 document.body.classList.remove('show-menu');
-            }, 3000);
+            }, 4000); // 4 detik agar lebih lama sedikit di TV
         }
 
         function updateClock() {
             const now = new Date();
-            document.getElementById('hours').textContent = now.getHours().toString().padStart(2, '0');
-            document.getElementById('minutes').textContent = now.getMinutes().toString().padStart(2, '0');
+            const h = now.getHours().toString().padStart(2, '0');
+            const m = now.getMinutes().toString().padStart(2, '0');
+            
+            const hoursEl = document.getElementById('hours');
+            const minsEl = document.getElementById('minutes');
+            const dateEl = document.getElementById('date-info');
+
+            if(hoursEl) hoursEl.textContent = h;
+            if(minsEl) minsEl.textContent = m;
             
             const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-            document.getElementById('date-info').textContent = now.toLocaleDateString('id-ID', options);
+            if(dateEl) dateEl.textContent = now.toLocaleDateString('id-ID', options);
         }
 
         function antiBurn() {
@@ -135,46 +164,41 @@
             const groupM = document.getElementById('group-minutes');
             const dateBox = document.getElementById('date-info');
             
+            if(!groupH || !groupM || !dateBox) return;
+
             const hourIsHigh = Math.random() > 0.5;
 
             if (hourIsHigh) {
-                // Jam agak di atas, Menit agak di bawah
-                groupH.style.top = "8vh"; 
-                groupM.style.top = "22vh"; 
-                
-                // Tanggal di Kiri Bawah (sejajar kolom Jam)
+                groupH.style.top = "5vh"; 
+                groupM.style.top = "20vh"; 
                 dateBox.style.left = "25%";
                 dateBox.style.transform = "translateX(-50%)";
             } else {
-                // Menit agak di atas, Jam agak di bawah
-                groupM.style.top = "8vh";
-                groupH.style.top = "22vh";
-                
-                // Tanggal di Kanan Bawah (sejajar kolom Menit)
+                groupM.style.top = "5vh";
+                groupH.style.top = "20vh";
                 dateBox.style.left = "75%";
                 dateBox.style.transform = "translateX(-50%)";
             }
         }
 
         function toggleFullScreen() {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-            else document.exitFullscreen();
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(e => {});
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
         }
 
         function autoFullScreen() {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(e => {});
+            }
         }
 
         function changeTheme(hColor, mColor) {
             document.documentElement.style.setProperty('--hour-color', hColor);
             document.documentElement.style.setProperty('--min-color', mColor);
         }
-
-        setInterval(updateClock, 1000);
-        setInterval(antiBurn, 20000);
-        
-        updateClock();
-        antiBurn();
     </script>
 </body>
 </html>
